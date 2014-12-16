@@ -1,0 +1,958 @@
+
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <title>Happy Bacteria</title>
+    <script type="text/javascript"
+            src = "simpleGame.js"></script>
+    <script type="text/javascript">
+	// global variables
+    var ship;
+	
+	var specks;
+	var eddies;
+	var ickies;
+	var PICS;
+	var DEADERS = 0;
+	var gauge;
+	var indicator;
+	var strength;
+	var win;
+	var lose;
+    var virtKeys = true;
+
+	// global constants
+	var TVELOCITY = 15;
+	//var FLOW = -3;
+	var FLOW = -3;
+	//var VISCOSITY = 40;
+	var VISCOSITY = 30;
+	var VCONST = 1;
+	var ECONST = 20;
+	var YFLOW = 0;
+	var NUM_ICKS = 12;
+	var NUM_YUMS = 20;
+	var NUM_EDDIES = 2;
+	var NUM_SPECKS = 30;
+	var NUM_ANTIS = 5;
+	var EROTSPEED = 2;
+	var PICRATIO = 1.35;
+	var ITSON = 0;
+	var FIGHTTIME = 30;
+	var BETWEENFIGHTS = 40;
+	joystick = new Joy();
+	
+	PICS = new Array(5);
+	PICS[0] = "levelone.png";
+	PICS[1] = "leveltwo.png";
+	PICS[2] = "levelthree.png";
+	PICS[3] = "levelfour.png";
+	PICS[4] = "levelfive.png";
+	
+	var score = 0;
+	var LEVEL = 1;
+	var nextLevel = 3;
+	var nextTime = 20;
+	
+	
+    var game;
+	
+    
+    function HappyShip(){
+	//creates a sprite of the insulin molecule. This code originated with Andy's orbit ship
+        tShip = new Sprite(game, "levelone.png", 30, 30);
+        tShip.setSpeed(0);
+        tShip.setBoundAction(BOUNCE);
+        tShip.setPosition(400, 250);
+        
+        tShip.checkKeys = function(){
+         /*   if (keysDown[K_LEFT]){
+                this.changeImgAngleBy(-5);
+            }
+            if (keysDown[K_RIGHT]){
+                this.changeImgAngleBy(5);
+            }
+            if (keysDown[K_UP]){
+							
+					this.addVector(this.getImgAngle(), .4);
+					
+            }*/
+			
+			if (keysDown[K_LEFT]){
+				if (this.getImgAngle() <= 270 && this.getImgAngle() > 90){
+					this.changeImgAngleBy(5);
+				}else if (this.getImgAngle() > 270 || this.getImgAngle() < 90){
+					this.changeImgAngleBy(-5);
+				}
+				}
+				
+				
+            
+            if (keysDown[K_RIGHT]){
+                if (this.getImgAngle() <= 90 || this.getImgAngle() > 270){
+					this.changeImgAngleBy(5);
+				}else if (this.getImgAngle() < 270 && this.getImgAngle() > 90){
+					this.changeImgAngleBy(-5);
+				}
+            }
+            if (keysDown[K_UP]){
+				if (this.getImgAngle() < 180){
+					this.changeImgAngleBy(-5);
+				}else if (this.getImgAngle() >= 180 ){
+					this.changeImgAngleBy(5);
+				}
+			}
+			if (keysDown[K_DOWN]){
+				if (this.getImgAngle() <= 180){
+					this.changeImgAngleBy(5);
+				}else if (this.getImgAngle() > 180 ){
+					this.changeImgAngleBy(-5);
+				}
+			}
+			if (this.getImgAngle() > 360){
+				this.setImgAngle(this.getImgAngle() - 360);
+			}
+			if (this.getImgAngle() < 0){
+				this.setImgAngle(this.getImgAngle() + 360);
+			}
+			this.addVector(this.getImgAngle(), .4);
+		}
+		tShip.moveShip = function(){
+			
+			deltaX = joystick.getMouseX() - ship.x;
+			deltaY = joystick.getMouseY() - ship.y;
+			
+			theta = Math.atan2(deltaY, deltaX);
+			theta *= 180/Math.PI;
+			this.setAngle(theta);
+			this.addVector(this.getImgAngle(), .4);
+				
+			
+		}
+		tShip.changePic = function(exponent){
+		
+			var newLvl = LEVEL - 1;
+			this.changeImage(PICS[newLvl]);
+			
+			this.width = this.width * Math.pow(PICRATIO, exponent);
+			this.height = this.height * Math.pow(PICRATIO, exponent);		
+		
+			}
+        
+        return tShip;
+	
+    } 
+	
+	function StrengthBar(){
+		
+			tBar = new Sprite(game, "indicator.png", 1, 50);
+			tBar.setSpeed(0);
+			tBar.setBoundAction(CONTINUE);
+			tBar.setX(400);
+			tBar.setY(30);
+		
+			return tBar;
+		}
+		
+	function Gauge(){
+		
+			tGauge = new Sprite(game, "gauge.png", 280, 60);
+			tGauge.setSpeed(0);
+			tGauge.setBoundAction(CONTINUE);
+			tGauge.setX(400);
+			tGauge.setY(30);
+		
+			return tGauge;
+		}
+	
+	function GLabel(){
+		
+			tLabel = new Sprite(game, "strength.png", 280, 60);
+			tLabel.setSpeed(0);
+			tLabel.setBoundAction(CONTINUE);
+			tLabel.setX(150);
+			tLabel.setY(30);
+		
+			return tLabel;
+		}
+		
+	function Win(){
+		
+			tLabel = new Sprite(game, "win.png", 500, 300);
+			tLabel.setSpeed(0);
+			tLabel.setBoundAction(CONTINUE);
+			tLabel.setX(game.width/2);
+			tLabel.setY(game.height/2);
+			tLabel.hide();
+		
+			return tLabel;
+		}
+	
+	function Lose(){
+		
+			tLabel = new Sprite(game, "lose.png", 500, 300);
+			tLabel.setSpeed(0);
+			tLabel.setBoundAction(CONTINUE);
+			tLabel.setX(game.width/2);
+			tLabel.setY(game.height/2);
+			tLabel.hide();
+		
+			return tLabel;
+		}
+	
+	function Bloodstream(){
+
+        tBloodstream = new Sprite(game, "bloodstream.png", 600, 1920);
+		tBloodstream.setImgAngle(0);
+		tBloodstream.setSpeed(0);
+        tBloodstream.setPosition(800, 300);
+                
+        return tBloodstream;
+    } 
+	
+		
+	function Eddie(){
+		//this creates a "vortex" sprite for creating non-laminar flow.
+		//I made a cheesy whirlpool-like sprite that very subtly indicates the vortex location
+		tEddie = new Sprite(game, "whirlpool.png", 160, 160);
+		//tEddie.setDX(-2);
+		tEddie.setSpeed(0);
+		tEddie.setBoundAction(WRAP);
+		
+		
+		
+		tEddie.reset = function(){
+            //places it in a random spot on the right border
+            newY = Math.random() * game.height;
+            this.setPosition((game.width + 100), newY);
+			
+			this.setSpeed(0);
+			this.show();
+        } 
+		
+		tEddie.reset();
+		
+		tEddie.checkBounds = function(){
+			//this function resets if the eddie goes out of bounds
+			if (this.x < -100){
+				//I intend to extend this bound lower once I get it working so that
+				//the effect does not abruptly end when the eddie gets to the far left
+				this.reset();
+			
+			}
+			
+			if (this.x > game.width + 110){
+			
+			this.reset();
+			
+			}
+			
+			if (this.y < -100){
+			
+			this.reset();
+			
+			}
+		
+			if (this.y > game.height + 100){
+			
+			this.reset();
+			
+			}
+			
+		}
+		
+		return tEddie;
+	}
+	
+	function Ick(){
+		//creates an ick, the target to catch or avoid in gameplay
+		tIck = new Sprite(game, "Icky.png", 25, 25);
+		tIck.setSpeed(0);
+		
+		tIck.reset = function(){
+            //places the ick on a random part of the right border
+            newY = Math.random() * game.height;
+            this.setPosition((game.width + 30), newY);
+			adj = (Math.random() * 15) - 8;
+			this.setImgAngle(90 + adj);
+			this.setSpeed(0);
+			this.show();
+        } 
+		
+		tIck.checkBounds = function(){
+			//resets if the ick reaches the edge of the border, alters score if on the far left
+			if (this.x < 0){
+			
+				this.reset();
+			
+			}
+			
+			if (this.x > game.width + 100){
+			
+			this.reset();
+			
+			}
+			
+			if (this.y < 0){
+			
+			this.reset();
+			
+			}
+		
+			if (this.y > game.height){
+			
+			this.reset();
+			
+			}
+			
+			if (this.x < (game.width * .9)){
+			
+			this.randomMove();
+			
+			}
+		
+		}
+		
+		tIck.randomMove = function(){
+			//once the ick makes it into the screen a decent way, randomizes movement
+			newRot = (Math.random() * 10) - 6;
+			this.changeImgAngleBy(newRot);
+			angle = this.getImgAngle();
+			this.addVector(angle, .1);
+		}
+		
+		return tIck;
+	
+	}
+	
+	function Anti(){
+		//creates an antibody, the big bad guy to avoid and/or defeat in the game
+		tAnti = new Sprite(game, "antibody.png", 75, 75);
+		newY = Math.random() * game.height;
+		tAnti.setPosition((game.width + 80), newY);
+		tAnti.setSpeed(0);
+		tAnti.retired = 1;
+		tAnti.dead = 0;
+		
+		tAnti.reset = function(){
+            //places the ick on a random part of the right border and then freezes it
+            newY = Math.random() * game.height;
+            this.setPosition((game.width + 80), newY);
+			adj = (Math.random() * 15) - 8;
+			this.setImgAngle(90 + adj);
+			this.setSpeed(0);
+			this.show();
+			if (ITSON == 0){
+				
+				this.retired = 1;	
+				
+			}
+        } 
+		
+		tAnti.checkBounds = function(){
+			//resets if the antibody reaches the edge of the border, alters score if on the far left
+			if (this.x < 0){
+			
+				this.reset();
+				
+			
+			}
+			
+			if (this.x > game.width + 100){
+			
+			this.reset();
+			
+			
+			}
+			
+			if (this.y < 0){
+			
+			this.reset();
+			
+			
+			}
+		
+			if (this.y > game.height){
+			
+			this.reset();
+			
+			
+			}
+			
+			if (this.x < (game.width * .9)){
+			
+			this.randomMove();
+			
+			}
+		
+		}
+		
+		tAnti.randomMove = function(){
+			//once the ick makes it into the screen a decent way, randomizes movement
+			if (ITSON == 1){
+				
+				deltaX = ship.x - this.x;
+				deltaY = ship.y - this.y;
+				
+				theta = Math.atan2(deltaY, deltaX);
+				theta *= 180/Math.PI;
+				
+				this.setAngle(theta + 90);
+				this.addVector(theta + 90,.02);	
+				
+			}
+			
+		}
+		
+		return tAnti;
+	
+	}
+	
+	function Yum(){
+		//creates an yum, the target to catch or avoid in gameplay
+		tYum = new Sprite(game, "Food.png", 25, 25);
+		tYum.setSpeed(0);
+		
+		tYum.reset = function(){
+            //places the ick on a random part of the right border
+            newY = Math.random() * game.height;
+            this.setPosition((game.width + 30), newY);
+			adj = (Math.random() * 15) - 8;
+			this.setImgAngle(90 + adj);
+			this.setSpeed(0);
+			this.show();
+        } 
+		
+		tYum.checkBounds = function(){
+			//resets if the yum reaches the edge of the border, alters score if on the far left
+			if (this.x < 0){
+			
+				this.reset();
+			
+			}
+			
+			if (this.x > game.width + 100){
+			
+			this.reset();
+			
+			}
+			
+			if (this.y < 0){
+			
+			this.reset();
+			
+			}
+		
+			if (this.y > game.height){
+			
+			this.reset();
+			
+			}
+			
+			if (this.x < (game.width * .9)){
+			
+			this.randomMove();
+			
+			}
+		
+		}
+		
+		tYum.randomMove = function(){
+			//once the yum makes it into the screen a decent way, randomizes movement
+			newRot = (Math.random() * 10) - 6;
+			this.changeImgAngleBy(newRot);
+			angle = this.getImgAngle();
+			this.addVector(angle, .1);
+		}
+		
+		return tYum;
+	
+	}
+	
+	function Speck(){
+		//creates a red blood cell 
+		tSpeck = new Sprite(game, "Speck.png", 250, 250);
+		tSpeck.setSpeed(0);
+		
+		tSpeck.reset = function(){
+            //places the red blood cell on a random place on the far right border
+            newY = Math.random() * game.height;
+			newX = game.width + 50;
+            this.setPosition(newX, newY);
+			
+			this.setImgAngle(Math.random() * 360);
+			this.setSpeed(0);
+			this.show();
+        } 
+		
+		tSpeck.checkBounds = function(){
+			//resets red blood cell when it reaches the edge of the screen
+			if (this.x < 0){
+			
+				this.reset();
+			
+			}
+			
+			if (this.x > game.width + 100){
+			
+			this.reset();
+			
+			}
+			
+			if (this.y < 0){
+			
+			this.reset();
+			
+			}
+		
+			if (this.y > game.height){
+			
+			this.reset();
+			
+			}
+			
+			
+		
+		}
+		
+		
+		return tSpeck;
+	
+	}
+	
+	
+	
+	
+	function makeIcks(){
+		//creates an array of Icks and places them on the screen
+		ickies = new Array(NUM_ICKS);
+		for (i = 0; i < NUM_ICKS; i++){
+		
+			ickies[i] = new Ick();
+			
+			ickies[i].setPosition((Math.random() * game.width), (Math.random() * game.height));
+			var startAngle = (Math.random() * 360);
+			ickies[i].setImgAngle(startAngle);
+			ickies[i].addVector(startAngle, .1);
+		}
+		
+	}
+    
+	function makeYums(){
+		//creates an array of yums and places them on the screen
+		yummies = new Array(NUM_YUMS);
+		for (i = 0; i < NUM_YUMS; i++){
+		
+			yummies[i] = new Yum();
+			yummies[i].setPosition((Math.random() * game.width), (Math.random() * game.height));
+			var startAngle = (Math.random() * 360);
+			yummies[i].setImgAngle(startAngle);
+			yummies[i].addVector(startAngle, .1);
+			
+		}
+		
+	}
+	
+	function makeAntis(){
+		//creates an array of yums and places them on the screen
+		antis = new Array(NUM_ANTIS);
+		for (i = 0; i < NUM_ANTIS; i++){
+		
+			antis[i] = new Anti();
+			
+			var startAngle = (Math.random() * 360);
+			antis[i].setImgAngle(startAngle);
+			
+			
+		}
+		
+	}
+	
+	function makeSpecks(){
+		//creates an array of red blood cells and places them on the screen
+		specks = new Array(NUM_SPECKS);
+		for (i = 0; i < NUM_SPECKS; i++){
+		
+			specks[i] = new Speck();
+			specks[i].reset();
+			specks[i].setPosition((Math.random() * game.width), (Math.random() * game.height));
+		}
+		
+	}
+	
+	function makeEddies(){
+		//creates an array of eddies and places them on the screen
+		eddies = new Array(NUM_EDDIES);
+		for (i = 0; i < NUM_EDDIES; i++){
+		
+			eddies[i] = new Eddie();
+			//eddies[i].reset();
+			newEddyX = Math.random() * game.width;
+			newEddyY = Math.random() * game.height;
+            eddies[i].setPosition((newEddyX - 15), newEddyY);
+			
+			eddies[i].setSpeed(0);
+			eddies[i].show();
+		}
+	
+	}
+	
+    function init(){
+		//initializes the game
+        game = new Scene();
+		var joystick = Joy();
+		bloodstream = new Bloodstream();
+		timer = new Timer();
+		timer.reset();
+        ship = new HappyShip();
+		ind = new StrengthBar();
+		gauge = new Gauge();
+		label = new GLabel();
+		win = new Win();
+		lose = new Lose();
+		makeIcks();
+		makeYums();
+		makeSpecks();
+		makeEddies();
+		makeAntis();
+		
+		
+		game.setBG("DarkRed");
+        stats = document.getElementById("stats");
+        game.start();
+    } // end init
+	
+	function endGame(){
+		//stops the game. I may add more stuff here if needed
+		game.stop();
+	
+	}
+	
+		
+	function updateIcks(){
+		//checks the flow and eddie effects, and bounds for each ick then updates
+		for (i = 0; i < NUM_ICKS; i++){
+			
+			applyFlow(ickies[i]);
+			checkEddies(ickies[i]);
+			ickies[i].checkBounds();
+			
+			ickies[i].update();
+			
+		}	
+	
+	}
+	
+	function updateYums(){
+		//checks the flow and eddie effects, and bounds for each ick then updates
+		for (i = 0; i < NUM_YUMS; i++){
+			
+			applyFlow(yummies[i]);
+			checkEddies(yummies[i]);
+			yummies[i].checkBounds();
+			
+			yummies[i].update();
+			
+		}	
+	
+	}
+	
+	function updateAntis(){
+		//checks the flow and eddie effects, and bounds for each ick then updates
+		for (i = 0; i < NUM_ANTIS; i++){
+			if ((antis[i].retired == 0) && (antis[i].dead == 0)){
+			applyFlow(antis[i]);
+			checkEddies(antis[i]);
+			}
+			antis[i].checkBounds();
+			
+			antis[i].update();
+			
+		}	
+	
+	}
+	
+	function updateSpecks(){
+	//checks the flow, eddie, and bounds effects for each red blood vessel
+		for (i = 0; i < NUM_SPECKS; i++){
+			
+			applyFlow(specks[i]);
+			checkEddies(specks[i]);
+			specks[i].checkBounds();
+			
+			specks[i].update();
+			
+		}	
+	
+	}
+	
+	function updateEddies(){
+	//checks the flow and bounds effects for each eddy
+		for (i = 0; i < NUM_EDDIES; i++){
+			eddies[i].changeImgAngleBy(EROTSPEED);
+			applyFlow(eddies[i]);
+			eddies[i].checkBounds();
+			
+			eddies[i].update();
+			
+		}	
+	
+	}
+	
+	function checkCollisions(){
+		//did we catch an ick? Adjust the score arrow and reset the ick!
+        for (i = 0;i < NUM_ICKS;i++){
+		
+			if (ship.collidesWith(ickies[i])){
+				score = score - 1;
+				if (score < 0){
+					score = 0;
+				}
+				
+				ickies[i].reset();
+				
+			} 
+			
+        }
+        
+		for (i = 0;i < NUM_YUMS;i++){
+		
+			if (ship.collidesWith(yummies[i])){
+				score = score + 1;
+				yummies[i].reset();
+				if (score > nextLevel){
+					raiseLevel();
+				}
+				
+				
+				
+			} 
+			
+        }
+		
+		if (ITSON == 1){
+			for (i = 0;i < NUM_ANTIS;i++){
+				if (ship.collidesWith(antis[i])){
+					if (LEVEL < 5){
+						
+				
+						score = score - 1;
+				
+						antis[i].reset();
+				
+						if (score < 1){
+					
+							lowerLevel();	
+					
+						}
+					}else{
+						
+						antis[i].dead = 1;
+						antis[i].reset();
+						DEADERS ++;
+						if (DEADERS >= 5){
+							win.show();
+							endGame();
+							
+							
+						}
+					}
+				}
+			}
+		}
+    } 
+    
+    function update(){
+		//updates everything in the game
+        game.clear();
+		bloodstream.update();
+        ship.checkKeys();
+		checkEddies(ship);
+        applyFlow(ship);
+		updateAntis();
+		checkCollisions();
+		win.update();
+		lose.update();
+		if (LEVEL == 5){
+			
+			ind.width = 260;
+			
+		}else{
+			ind.width = (260/nextLevel) * score;
+		}
+		ind.update();
+		gauge.update();
+		label.update();
+		
+		
+		//ship.moveShip();
+        ship.update();
+		
+		updateIcks();
+		updateYums();
+		updateSpecks();
+		updateEddies();
+		
+		updateTime();
+		
+		//stats.innerHTML = "nextTime: " + nextTime  + "Level: " +  LEVEL  + "Score: " + score + "Retired: " + antis[1].retired;
+    } // end update
+    
+	function raiseLevel(){
+		// Make sure we are not already at maximum level. If we are, do nothing.
+		if (LEVEL != 5){
+		
+			//Increment level and then calculate the new requirement to get to the next level
+			
+			LEVEL ++;
+			score = score - nextLevel;  // This ensure that we don't drop points if we catch multiple yums at once.
+			nextLevel = LEVEL * 6;
+			ship.changePic(1);	
+			
+		}
+		
+	}
+	
+	function lowerLevel(){
+		// make sure we are not at level 1. If we are, we die!
+		if (LEVEL == 1){
+			lose.show();	
+			endGame();
+			
+		}else{
+			//decrement level, and figure a new score and points needed for next level
+			LEVEL --;
+			nextLevel = LEVEL * 6;
+			score = nextLevel;
+			ship.changePic(-1);
+		
+		}
+			
+		
+	}
+	
+	
+	
+	function updateTime(){
+	
+		time = Math.round(timer.getElapsedTime());
+		if (time >= nextTime){
+		
+			if (ITSON == 0){
+				
+				ITSON = 1;
+				for (i=0;i<NUM_ANTIS;i++){
+					if (antis[i].dead == 0){
+						antis[i].retired = 0;	
+					}
+				}
+				nextTime = nextTime + FIGHTTIME;
+					
+				
+			}else{
+				ITSON = 0;
+				
+				nextTime = nextTime + BETWEENFIGHTS;
+			}
+			
+		
+		}
+		
+	}
+	
+    function checkEddies(subject){
+        //applying a seemingly-random gravity effect on icks, specks and happyship with invisible sprites
+        //this is to create the illusion of eddies in the flow, making it non-laminar
+		for (j=0; j < NUM_EDDIES;j++){
+		
+			dist = subject.distanceTo(eddies[j]);
+			dir1 = (eddies[j].angleTo(subject) - 115);
+			force1 = (ECONST) / (dist);
+			
+			subject.addVector(dir1, force1);
+		}
+    } // end checkGravity
+    
+	function applyFlow(subject){
+	
+	//make sure we aren't stuck on a wall
+		if (subject == (ship) ){
+			if (subject.x <3){
+				if (subject.dx < .2){
+					subject.setDX(.2);
+				}
+			}
+			
+			if (subject.y <3){
+				if (subject.dy < .2){
+					subject.setDY(.2);
+				}
+			}
+			
+			if (subject.y > game.height){
+				if (subject.dy > -.2){
+					subject.setDY(-.2);
+				}
+			}
+			
+		}
+	//set the dx and dy of the subject to the terminal velocity relative to the flow
+	
+		if (subject.dy > TVELOCITY){
+	
+			newDY = (subject.dy - ((subject.dy - TVELOCITY) / VISCOSITY));
+			subject.setDY(newDY);
+	
+		}
+	
+		if (subject.dy < TVELOCITY * -1) {
+	
+			newDY = (subject.dy + ((subject.dy + TVELOCITY)/ VISCOSITY * -1));
+			subject.setDY(newDY);
+				
+		}
+		
+		if (subject.dx > (TVELOCITY + FLOW)){
+		
+			newDX = (subject.dx - (subject.dx - TVELOCITY + FLOW)/VISCOSITY * -1);
+			subject.setDX(newDX);
+		
+		}
+		
+		if (subject.dx < ((TVELOCITY - FLOW) * -1)){
+		
+			newDX = ((subject.dx + (subject.dx + TVELOCITY + FLOW)/VISCOSITY));
+			subject.setDX(newDX);
+		
+		}
+		
+		
+	//then apply the flow to the subject's speed directly, and friction along y axis
+	
+		excess = subject.dx - FLOW;
+		newDX = subject.dx + (excess/(10-(VCONST * VISCOSITY)));
+		subject.setDX(newDX);
+		
+		excess = subject.dy - YFLOW;
+		newDY = subject.dy + (excess/(15-(VCONST * VISCOSITY)));
+		subject.setDY(newDY);
+		
+	}
+	
+    </script>
+<style type="text/css">
+        #stats {
+            position: absolute;
+            font-family: monospace;
+            left: 50px;
+            top: 50px;
+            z-index: 999;
+            color: white;
+        }
+    </style>
+</head>
+<body onload = "init()">
+    <div id = "stats"></div>
+</body>
+</html>
