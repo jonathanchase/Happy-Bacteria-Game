@@ -1,12 +1,22 @@
 
 <!DOCTYPE HTML>
 <html lang="en-US">
+
+	
 <head>
     <meta charset="UTF-8">
     <title>Happy Bacteria</title>
     <script type="text/javascript"
             src = "simpleGame.js"></script>
     <script type="text/javascript">
+	
+	//Happy Bacteria
+	//By Jonathan Chase
+
+	// This game uses the simplegame JavaScript engine by Andy Harris. 
+
+	
+	
 	// global variables
     var ship;
 	
@@ -26,7 +36,7 @@
 	var TVELOCITY = 15;
 	//var FLOW = -3;
 	var FLOW = -3;
-	//var VISCOSITY = 40;
+	
 	var VISCOSITY = 30;
 	var VCONST = 1;
 	var ECONST = 20;
@@ -60,24 +70,16 @@
 	
     
     function HappyShip(){
-	//creates a sprite of the insulin molecule. This code originated with Andy's orbit ship
+	//creates a sprite of the single bacteria. I used previously-used code from another project
+	// which is why I used "ship" a lot in this code
         tShip = new Sprite(game, "levelone.png", 30, 30);
         tShip.setSpeed(0);
         tShip.setBoundAction(BOUNCE);
         tShip.setPosition(400, 250);
         
         tShip.checkKeys = function(){
-         /*   if (keysDown[K_LEFT]){
-                this.changeImgAngleBy(-5);
-            }
-            if (keysDown[K_RIGHT]){
-                this.changeImgAngleBy(5);
-            }
-            if (keysDown[K_UP]){
-							
-					this.addVector(this.getImgAngle(), .4);
-					
-            }*/
+			//This checks for keys being pressed down, and moves the sprite appropriately.
+			//The arrow keys turn the bacteria in the appropriate direction by changing angle.
 			
 			if (keysDown[K_LEFT]){
 				if (this.getImgAngle() <= 270 && this.getImgAngle() > 90){
@@ -119,6 +121,8 @@
 			this.addVector(this.getImgAngle(), .4);
 		}
 		tShip.moveShip = function(){
+		
+			//If I ever use the virtual joystick, I will use this code.
 			
 			deltaX = joystick.getMouseX() - ship.x;
 			deltaY = joystick.getMouseY() - ship.y;
@@ -130,6 +134,7 @@
 				
 			
 		}
+		//This function is for changing the sprite's image at appropriate levels
 		tShip.changePic = function(exponent){
 		
 			var newLvl = LEVEL - 1;
@@ -145,7 +150,7 @@
     } 
 	
 	function StrengthBar(){
-		
+			//Create a strength bar and initialize its values.
 			tBar = new Sprite(game, "indicator.png", 1, 50);
 			tBar.setSpeed(0);
 			tBar.setBoundAction(CONTINUE);
@@ -156,7 +161,7 @@
 		}
 		
 	function Gauge(){
-		
+			//Creates the gauge.
 			tGauge = new Sprite(game, "gauge.png", 280, 60);
 			tGauge.setSpeed(0);
 			tGauge.setBoundAction(CONTINUE);
@@ -167,7 +172,7 @@
 		}
 	
 	function GLabel(){
-		
+			//Strength label
 			tLabel = new Sprite(game, "strength.png", 280, 60);
 			tLabel.setSpeed(0);
 			tLabel.setBoundAction(CONTINUE);
@@ -178,7 +183,7 @@
 		}
 		
 	function Win(){
-		
+			//Creates the graphic for the win, and hides it.
 			tLabel = new Sprite(game, "win.png", 500, 300);
 			tLabel.setSpeed(0);
 			tLabel.setBoundAction(CONTINUE);
@@ -190,7 +195,7 @@
 		}
 	
 	function Lose(){
-		
+			//Creates the graphic for losing, and hides it.
 			tLabel = new Sprite(game, "lose.png", 500, 300);
 			tLabel.setSpeed(0);
 			tLabel.setBoundAction(CONTINUE);
@@ -202,7 +207,7 @@
 		}
 	
 	function Bloodstream(){
-
+		//Creates background image
         tBloodstream = new Sprite(game, "bloodstream.png", 600, 1920);
 		tBloodstream.setImgAngle(0);
 		tBloodstream.setSpeed(0);
@@ -215,6 +220,7 @@
 	function Eddie(){
 		//this creates a "vortex" sprite for creating non-laminar flow.
 		//I made a cheesy whirlpool-like sprite that very subtly indicates the vortex location
+		//This was for testing. I replaced it with an invisible sprite to use as a placeholder.
 		tEddie = new Sprite(game, "whirlpool.png", 160, 160);
 		//tEddie.setDX(-2);
 		tEddie.setSpeed(0);
@@ -336,7 +342,7 @@
 		tAnti.dead = 0;
 		
 		tAnti.reset = function(){
-            //places the ick on a random part of the right border and then freezes it
+            //places the antibody on a random part of the right border and then freezes it
             newY = Math.random() * game.height;
             this.setPosition((game.width + 80), newY);
 			adj = (Math.random() * 15) - 8;
@@ -389,7 +395,7 @@
 		}
 		
 		tAnti.randomMove = function(){
-			//once the ick makes it into the screen a decent way, randomizes movement
+			//When I improve the movement, I will use this code.
 			if (ITSON == 1){
 				
 				deltaX = ship.x - this.x;
@@ -472,6 +478,7 @@
 	
 	function Speck(){
 		//creates a red blood cell 
+		//These are for showing the player the motion of the bloodstream
 		tSpeck = new Sprite(game, "Speck.png", 250, 250);
 		tSpeck.setSpeed(0);
 		
@@ -835,7 +842,7 @@
 	
 	
 	function updateTime(){
-	
+		//This updates the time ticker and keeps track of when to release the antibodies for the next attack
 		time = Math.round(timer.getElapsedTime());
 		if (time >= nextTime){
 		
@@ -862,7 +869,7 @@
 	}
 	
     function checkEddies(subject){
-        //applying a seemingly-random gravity effect on icks, specks and happyship with invisible sprites
+        //applying a seemingly-random whirlpool effect on icks, specks and happyship with invisible sprites
         //this is to create the illusion of eddies in the flow, making it non-laminar
 		for (j=0; j < NUM_EDDIES;j++){
 		
